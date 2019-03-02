@@ -153,8 +153,19 @@ namespace wf
             return *window;
         }
 
-        void Keyboard::handle_action(int32_t action)
+        void Keyboard::handle_action(uint32_t action)
         {
+            if (action == ABC_TOGGLE)
+            {
+                if (current_layout == default_layout.get()) {
+                    set_layout(shift_layout.get());
+                } else {
+                    set_layout(default_layout.get());
+                }
+            }
+
+            if (action == NUM_TOGGLE)
+                set_layout(numeric_layout.get());
         }
     }
 }

@@ -71,7 +71,7 @@ namespace wf
             static void create();
             static Keyboard& get();
 
-            void handle_action(int32_t action);
+            void handle_action(uint32_t action);
             VirtualKeyboardDevice& get_device();
             Gtk::Window& get_window();
         };
