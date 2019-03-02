@@ -13,7 +13,7 @@ std::vector<std::vector<Key>> default_keys = {
         {KEY_BACKSPACE, "⌫", 2}
     },
     {
-        {0, " ", 0.5},
+        {KEY_TAB, "⇥", 0.5},
         {KEY_A, "a", 1},
         {KEY_S, "s", 1},
         {KEY_D, "d", 1},
