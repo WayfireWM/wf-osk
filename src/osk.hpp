@@ -18,7 +18,7 @@ namespace wf
         struct Key
         {
             uint32_t code;
-            std::string text;
+            Glib::ustring text;
             double width;
         };
 

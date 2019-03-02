@@ -10,7 +10,7 @@ std::vector<std::vector<Key>> default_keys = {
         {KEY_I, "i", 1},
         {KEY_O, "o", 1},
         {KEY_P, "p", 1},
-        {KEY_BACKSPACE, "<--", 2}
+        {KEY_BACKSPACE, "⌫", 2}
     },
     {
         {0, " ", 0.5},
@@ -23,7 +23,7 @@ std::vector<std::vector<Key>> default_keys = {
         {KEY_J, "j", 1},
         {KEY_K, "k", 1},
         {KEY_L, "l", 1},
-        {KEY_ENTER, "enter", 2}
+        {KEY_ENTER, "↵", 2}
     },
     {
         {ABC_TOGGLE, "ABC", 1},
@@ -40,10 +40,10 @@ std::vector<std::vector<Key>> default_keys = {
     {
         {NUM_TOGGLE, "123?", 1.5},
         {KEY_SPACE, "_", 9.5},
-        {KEY_LEFT, "<", 0.5},
-        {KEY_RIGHT, ">", 0.5},
-        {KEY_UP, "/\\", 0.5},
-        {KEY_DOWN, "\\/", 0.5}
+        {KEY_LEFT, "←", 0.5},
+        {KEY_RIGHT, "→", 0.5},
+        {KEY_UP, "↑", 0.5},
+        {KEY_DOWN, "↓", 0.5}
     }
 };
 
@@ -52,12 +52,7 @@ for (auto& row : shift_keys)
 {
     for (auto& key : row)
     {
-        for (auto& c : key.text)
-        {
-            if (std::isalpha(c))
-                c = std::toupper(c);
-        }
-
+        key.text = key.text.uppercase();
         if (key.code < USE_SHIFT)
             key.code |= USE_SHIFT;
 
@@ -80,7 +75,7 @@ std::vector<std::vector<Key>> numeric_keys = {
         {KEY_0, "0", 1},
         {KEY_MINUS, "-", 1},
         {KEY_EQUAL, "=", 1},
-        {KEY_BACKSPACE, "<--", 2}
+        {KEY_BACKSPACE, "⌫", 2}
     },
     {
         {KEY_1 | USE_SHIFT, "!", 1},
@@ -95,7 +90,7 @@ std::vector<std::vector<Key>> numeric_keys = {
         {KEY_0 | USE_SHIFT, ")", 1},
         {KEY_SEMICOLON, ";", 1},
         {KEY_SEMICOLON | USE_SHIFT, ":", 1},
-        {KEY_ENTER, "ent", 1}
+        {KEY_ENTER, "↵", 1}
     },
     {
         {KEY_LEFTBRACE, "[", 1},
