@@ -90,7 +90,7 @@ std::vector<std::vector<Key>> numeric_keys = {
         {KEY_0 | USE_SHIFT, ")", 1},
         {KEY_SEMICOLON, ";", 1},
         {KEY_SEMICOLON | USE_SHIFT, ":", 1},
-        {KEY_ENTER, "↵", 1}
+        {KEY_ENTER, "↵", 3}
     },
     {
         {KEY_LEFTBRACE, "[", 1},
@@ -105,7 +105,9 @@ std::vector<std::vector<Key>> numeric_keys = {
         {KEY_APOSTROPHE, "\'", 1},
         {KEY_APOSTROPHE | USE_SHIFT, "\"", 1},
         {KEY_GRAVE, "`", 1},
-        {KEY_GRAVE | USE_SHIFT, "~", 1}
+        {KEY_GRAVE | USE_SHIFT, "~", 1},
+        {KEY_COMMA, ",", 1},
+        {KEY_DOT, ".", 1}
     },
     {
         {ABC_TOGGLE, "abc", 1},

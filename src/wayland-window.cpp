@@ -74,12 +74,15 @@ namespace wf
         return instance;
     }
 
-    WaylandWindow::WaylandWindow(int width, int height)
+    WaylandWindow::WaylandWindow(int x, int y, int width, int height)
         : Gtk::Window()
     {
         auto display = WaylandDisplay::get();
 
+        /* Trick: first show the window, get frame size, then subtract it again */
         this->set_size_request(width, height);
+        this->set_default_size(width, height);
+        this->set_type_hint(Gdk::WINDOW_TYPE_HINT_DOCK);
         this->show_all();
 
         auto gdk_window = this->get_window()->gobj();
@@ -92,8 +95,9 @@ namespace wf
         }
 
         wm_surface = zwf_shell_manager_v1_get_wm_surface(display.wf_manager,
-            surface, ZWF_WM_SURFACE_V1_ROLE_OVERLAY, NULL);
+            surface, ZWF_WM_SURFACE_V1_ROLE_DESKTOP_WIDGET, NULL);
         zwf_wm_surface_v1_set_keyboard_mode(wm_surface,
             ZWF_WM_SURFACE_V1_KEYBOARD_FOCUS_MODE_NO_FOCUS);
+        zwf_wm_surface_v1_configure(wm_surface, x, y);
     }
 }

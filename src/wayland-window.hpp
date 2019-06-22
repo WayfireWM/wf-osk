@@ -22,6 +22,6 @@ namespace wf
     {
         zwf_wm_surface_v1 *wm_surface;
         public:
-        WaylandWindow(int width, int height);
+        WaylandWindow(int x, int y, int width, int height);
     };
 }

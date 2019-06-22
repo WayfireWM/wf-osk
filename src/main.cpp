@@ -1,4 +1,5 @@
 #include "osk.hpp"
+#include <getopt.h>
 #include <iostream>
 #include <linux/input-event-codes.h>
 
@@ -14,6 +15,8 @@ namespace wf
     namespace osk
     {
         int spacing = 8;
+        int default_x = 100;
+        int default_y = 100;
         int default_width = 800;
         int default_height = 400;
 
@@ -119,7 +122,7 @@ namespace wf
         Keyboard::Keyboard()
         {
             window = std::make_unique<WaylandWindow>
-                (default_width, default_height);
+                (default_x, default_y, default_width, default_height);
             vk = std::make_unique<VirtualKeyboardDevice> ();
 
             init_layouts();
@@ -170,8 +173,37 @@ namespace wf
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    struct option opts[] = {
+        { "geometry",          required_argument, NULL, 'g' },
+        { 0,                   0,                 NULL,  0  }
+    };
+
+    int c, i;
+    while((c = getopt_long(argc, argv, "g:", opts, &i)) != -1)
+    {
+        using namespace wf::osk;
+        switch(c)
+        {
+            case 'g':
+                if (sscanf(optarg, "%d,%d %dx%d", &default_x, &default_y,
+                        &default_width, &default_height) != 4)
+                {
+                    std::cerr << "Invalid geometry: " << optarg << std::endl;
+                    std::exit(-1);
+                } else
+                {
+                    std::cout << "Geometry " << default_x << "," << default_y << " "
+                        << default_width << "x" << default_height;
+                }
+
+                break;
+            default:
+                std::cerr << "Unrecognized argument " << char(c) << std::endl;
+        }
+    }
+
     auto app = Gtk::Application::create();
     wf::osk::Keyboard::create();
     return app->run(wf::osk::Keyboard::get().get_window());

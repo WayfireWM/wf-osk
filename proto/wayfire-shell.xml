@@ -1,6 +1,9 @@
 <protocol name="wayfire_shell">
     <interface name="zwf_shell_manager_v1" version="1">
         <description summary="DE integration">
+            IMPORTANT: most of wayfire-shell is going to be deprecated. Try to
+            use layer-shell instead.
+
             The purpose of this protocol is to enable the creation of different
             desktop-interface windows like panels, backgrounds, docks,
             lockscreens, etc. It also aims to allow the creation of full-blown
@@ -90,6 +93,7 @@
             <entry name="bottom" value="2"/>
             <entry name="panel" value="3"/>
             <entry name="overlay" value="4"/>
+            <entry name="desktop_widget" value="5"/>
         </enum>
 
         <request name="configure">
