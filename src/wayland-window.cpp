@@ -21,8 +21,14 @@ namespace wf
         {
             display->wf_manager =
                 (zwf_shell_manager_v1*) wl_registry_bind(registry, name,
-                    &zwf_shell_manager_v1_interface,
-                    std::min(version, 1u));
+                    &zwf_shell_manager_v1_interface, std::min(version, 1u));
+        }
+
+        if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0)
+        {
+            display->layer_shell =
+                (zwlr_layer_shell_v1*) wl_registry_bind(registry, name,
+                    &zwlr_layer_shell_v1_interface, std::min(version, 1u));
         }
 
         if (strcmp(interface, zwp_virtual_keyboard_manager_v1_interface.name) == 0)
@@ -44,6 +50,23 @@ namespace wf
         &registry_remove_object
     };
 
+    static void layer_shell_handle_configure(void *data, struct zwlr_layer_surface_v1 *zwlr_layer_surface,
+    		uint32_t serial, uint32_t width, uint32_t height)
+    {
+    	zwlr_layer_surface_v1_ack_configure(zwlr_layer_surface, serial);
+    }
+
+    static void layer_shell_handle_close(void *data, struct zwlr_layer_surface_v1 *surface)
+    {
+		zwlr_layer_surface_v1_destroy(surface);
+    }
+
+    static struct zwlr_layer_surface_v1_listener layer_surface_listener =
+    {
+    	&layer_shell_handle_configure,
+		&layer_shell_handle_close
+    };
+
     WaylandDisplay::WaylandDisplay()
     {
         auto gdk_display = gdk_display_get_default();
@@ -58,9 +81,10 @@ namespace wf
 
         wl_registry *registry = wl_display_get_registry(display);
         wl_registry_add_listener(registry, &registry_listener, this);
+        wl_display_dispatch(display);
         wl_display_roundtrip(display);
 
-        if (!vk_manager || !seat || !wf_manager)
+        if (!vk_manager || !seat || (!wf_manager && !layer_shell))
         {
             std::cerr << "Compositor doesn't support the virtual-keyboard-v1 "
                 << "and/or the wayfire-shell protocols, exiting" << std::endl;
@@ -74,6 +98,63 @@ namespace wf
         return instance;
     }
 
+    void WaylandWindow::initWayfireShell(WaylandDisplay display, int x, int y, int width, int height)
+    {
+    	this->show_all();
+    	auto gdk_window = this->get_window()->gobj();
+        auto surface = gdk_wayland_window_get_wl_surface(gdk_window);
+
+        if (!surface)
+        {
+            std::cerr << "Error: created window was not a wayland surface" << std::endl;
+            std::exit(-1);
+        }
+
+		wf_surface = zwf_shell_manager_v1_get_wm_surface(display.wf_manager, surface,
+				ZWF_WM_SURFACE_V1_ROLE_DESKTOP_WIDGET, nullptr);
+		zwf_wm_surface_v1_set_keyboard_mode(wf_surface, ZWF_WM_SURFACE_V1_KEYBOARD_FOCUS_MODE_NO_FOCUS);
+		zwf_wm_surface_v1_configure(wf_surface, x, y);
+
+    }
+
+    void WaylandWindow::initLayerShell(WaylandDisplay display, int width, int height)
+    {
+        auto gtk_window = this->gobj();
+        auto gtk_widget = GTK_WIDGET(gtk_window);
+        gtk_widget_realize(gtk_widget);
+
+        auto gdk_window = this->get_window()->gobj();
+    	gdk_wayland_window_set_use_custom_surface(gdk_window);
+        auto surface = gdk_wayland_window_get_wl_surface(gdk_window);
+
+        if (!surface)
+        {
+            std::cerr << "Error: created window was not a wayland surface" << std::endl;
+            std::exit(-1);
+        }
+
+		uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_TOP;
+        layer_surface = zwlr_layer_shell_v1_get_layer_surface(display.layer_shell,
+            surface, NULL, layer, "wf-osk");
+        if (!layer_surface)
+        {
+			std::cerr << "Error: could not create layer surface" << std::endl;
+			std::exit(-1);
+        }
+
+        zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, nullptr);
+        zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, 0);
+        zwlr_layer_surface_v1_set_size(layer_surface, width, height);
+        zwlr_layer_surface_v1_set_anchor(layer_surface, 0);
+
+        wl_surface_commit(surface);
+        auto gdk_display = gdk_display_get_default();
+        auto wl_display = gdk_wayland_display_get_wl_display(gdk_display);
+		wl_display_roundtrip(wl_display);
+
+        this->show_all();
+    }
+
     WaylandWindow::WaylandWindow(int x, int y, int width, int height)
         : Gtk::Window()
     {
@@ -83,21 +164,16 @@ namespace wf
         this->set_size_request(width, height);
         this->set_default_size(width, height);
         this->set_type_hint(Gdk::WINDOW_TYPE_HINT_DOCK);
-        this->show_all();
 
-        auto gdk_window = this->get_window()->gobj();
-        auto surface = gdk_wayland_window_get_wl_surface(gdk_window);
-
-        if (!surface)
+        if (display.wf_manager)
         {
-            std::cerr << "Error: created window was not a wayland surface" << std::endl;
+        	initWayfireShell(display, x, y, width, height);
+        } else if (display.layer_shell)
+        {
+        	initLayerShell(display, width, height);
+        } else {
+            std::cerr << "Error: cannot find any supported shell protocol" << std::endl;
             std::exit(-1);
         }
-
-        wm_surface = zwf_shell_manager_v1_get_wm_surface(display.wf_manager,
-            surface, ZWF_WM_SURFACE_V1_ROLE_DESKTOP_WIDGET, NULL);
-        zwf_wm_surface_v1_set_keyboard_mode(wm_surface,
-            ZWF_WM_SURFACE_V1_KEYBOARD_FOCUS_MODE_NO_FOCUS);
-        zwf_wm_surface_v1_configure(wm_surface, x, y);
     }
 }

@@ -15,8 +15,10 @@ wayland_scanner_client = generator(
 )
 
 client_protocols = [
-    'wayfire-shell.xml',
-    'virtual-keyboard-unstable-v1.xml'
+	[wl_protocol_dir, 'stable/xdg-shell/xdg-shell.xml'],
+	['wayfire-shell.xml'],
+    ['wlr-layer-shell-unstable-v1.xml'],
+    ['virtual-keyboard-unstable-v1.xml']
 ]
 
 wl_protos_src = []
