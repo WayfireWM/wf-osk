@@ -25,10 +25,13 @@ namespace wf
     	zwf_wm_surface_v1 *wf_surface;
         zwlr_layer_surface_v1 *layer_surface;
 
-        void initWayfireShell(WaylandDisplay display, int x, int y, int width, int height);
-        void initLayerShell(WaylandDisplay display, int width, int height);
+        uint32_t checkAnchorForWayfireShell(int width, int height, std::string anchor);
+        uint32_t checkAnchorForLayerShell(int width, int height, std::string anchor);
+
+        void initWayfireShell(WaylandDisplay display, int x, int y, int width, int height, std::string anchor);
+        void initLayerShell(WaylandDisplay display, int width, int height, std::string anchor);
 
         public:
-        WaylandWindow(int x, int y, int width, int height);
+        WaylandWindow(int x, int y, int width, int height, std::string anchor);
     };
 }

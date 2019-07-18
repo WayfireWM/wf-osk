@@ -1,5 +1,6 @@
 #include "wayland-window.hpp"
 #include <iostream>
+#include <algorithm>
 #include <gdk/gdkwayland.h>
 #include <wayland-client.h>
 
@@ -98,7 +99,62 @@ namespace wf
         return instance;
     }
 
-    void WaylandWindow::initWayfireShell(WaylandDisplay display, int x, int y, int width, int height)
+    uint32_t WaylandWindow::checkAnchorForWayfireShell(int width, int height, std::string anchor)
+    {
+    	if (anchor.empty())
+    	{
+    		return 0;
+    	}
+
+		std::transform(anchor.begin(), anchor.end(), anchor.begin(), ::tolower);
+
+		uint32_t parsed_anchor = 0;
+		if (anchor.compare("top") == 0)
+		{
+			parsed_anchor = ZWF_WM_SURFACE_V1_ANCHOR_EDGE_TOP;
+		} else if (anchor.compare("bottom") == 0)
+		{
+			parsed_anchor = ZWF_WM_SURFACE_V1_ANCHOR_EDGE_BOTTOM;
+		} else if (anchor.compare("left") == 0)
+		{
+			parsed_anchor = ZWF_WM_SURFACE_V1_ANCHOR_EDGE_LEFT;
+		} else if (anchor.compare("right") == 0)
+		{
+			parsed_anchor = ZWF_WM_SURFACE_V1_ANCHOR_EDGE_RIGHT;
+		}
+
+		return parsed_anchor;
+    }
+
+    uint32_t WaylandWindow::checkAnchorForLayerShell(int width, int height, std::string anchor)
+    {
+    	if (anchor.empty())
+    	{
+    		return 0;
+    	}
+
+		std::transform(anchor.begin(), anchor.end(), anchor.begin(), ::tolower);
+
+		uint32_t parsed_anchor = 0;
+		if (anchor.compare("top") == 0)
+		{
+			parsed_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
+		} else if (anchor.compare("bottom") == 0)
+		{
+			parsed_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
+		} else if (anchor.compare("left") == 0)
+		{
+			parsed_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
+		} else if (anchor.compare("right") == 0)
+		{
+			parsed_anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+		}
+
+		return parsed_anchor;
+    }
+
+    void WaylandWindow::initWayfireShell(WaylandDisplay display, int x, int y, int width,
+    		int height, std::string anchor)
     {
     	this->show_all();
     	auto gdk_window = this->get_window()->gobj();
@@ -113,11 +169,14 @@ namespace wf
 		wf_surface = zwf_shell_manager_v1_get_wm_surface(display.wf_manager, surface,
 				ZWF_WM_SURFACE_V1_ROLE_DESKTOP_WIDGET, nullptr);
 		zwf_wm_surface_v1_set_keyboard_mode(wf_surface, ZWF_WM_SURFACE_V1_KEYBOARD_FOCUS_MODE_NO_FOCUS);
+
+		uint32_t parsed_anchor = checkAnchorForWayfireShell(width, height, anchor);
+		zwf_wm_surface_v1_set_anchor(wf_surface, parsed_anchor);
 		zwf_wm_surface_v1_configure(wf_surface, x, y);
 
     }
 
-    void WaylandWindow::initLayerShell(WaylandDisplay display, int width, int height)
+    void WaylandWindow::initLayerShell(WaylandDisplay display, int width, int height, std::string anchor)
     {
         auto gtk_window = this->gobj();
         auto gtk_widget = GTK_WIDGET(gtk_window);
@@ -145,7 +204,9 @@ namespace wf
         zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, nullptr);
         zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, 0);
         zwlr_layer_surface_v1_set_size(layer_surface, width, height);
-        zwlr_layer_surface_v1_set_anchor(layer_surface, 0);
+
+		uint32_t parsed_anchor = checkAnchorForLayerShell(width, height, anchor);
+        zwlr_layer_surface_v1_set_anchor(layer_surface, parsed_anchor);
 
         wl_surface_commit(surface);
         auto gdk_display = gdk_display_get_default();
@@ -155,7 +216,7 @@ namespace wf
         this->show_all();
     }
 
-    WaylandWindow::WaylandWindow(int x, int y, int width, int height)
+    WaylandWindow::WaylandWindow(int x, int y, int width, int height, std::string anchor)
         : Gtk::Window()
     {
         auto display = WaylandDisplay::get();
@@ -167,10 +228,10 @@ namespace wf
 
         if (display.wf_manager)
         {
-        	initWayfireShell(display, x, y, width, height);
+        	initWayfireShell(display, x, y, width, height, anchor);
         } else if (display.layer_shell)
         {
-        	initLayerShell(display, width, height);
+        	initLayerShell(display, width, height, anchor);
         } else {
             std::cerr << "Error: cannot find any supported shell protocol" << std::endl;
             std::exit(-1);
