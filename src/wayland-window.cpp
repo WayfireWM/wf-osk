@@ -62,6 +62,9 @@ namespace wf
             struct zwlr_layer_surface_v1 *surface)
     {
         zwlr_layer_surface_v1_destroy(surface);
+
+        Gtk::Application *app = (Gtk::Application *) data;
+        app->quit();
     }
 
     static struct zwlr_layer_surface_v1_listener layer_surface_listener =
@@ -208,8 +211,9 @@ namespace wf
             std::exit(-1);
         }
 
+        Gtk::Application *data = this->get_application().get();
         zwlr_layer_surface_v1_add_listener(layer_surface,
-                &layer_surface_listener, nullptr);
+                &layer_surface_listener, data);
         zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, 0);
         zwlr_layer_surface_v1_set_size(layer_surface, width, height);
 
