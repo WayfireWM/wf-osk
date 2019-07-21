@@ -22,14 +22,18 @@ namespace wf
 
     class WaylandWindow : public Gtk::Window
     {
-    	zwf_wm_surface_v1 *wf_surface;
+        zwf_wm_surface_v1 *wf_surface;
         zwlr_layer_surface_v1 *layer_surface;
 
-        uint32_t checkAnchorForWayfireShell(int width, int height, std::string anchor);
-        uint32_t checkAnchorForLayerShell(int width, int height, std::string anchor);
+        uint32_t check_anchor_for_wayfire_shell(int width, int height,
+                std::string anchor);
+        uint32_t check_anchor_for_layer_shell(int width, int height,
+                std::string anchor);
 
-        void initWayfireShell(WaylandDisplay display, int x, int y, int width, int height, std::string anchor);
-        void initLayerShell(WaylandDisplay display, int width, int height, std::string anchor);
+        void init_wayfire_shell(WaylandDisplay display, int x, int y,
+                int width, int height, std::string anchor);
+        void init_layer_shell(WaylandDisplay display, int width, int height,
+                std::string anchor);
 
         public:
         WaylandWindow(int x, int y, int width, int height, std::string anchor);
