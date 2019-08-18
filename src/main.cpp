@@ -17,8 +17,6 @@ namespace wf
     namespace osk
     {
         int spacing = 8;
-        int default_x = 100;
-        int default_y = 100;
         int default_width = 800;
         int default_height = 400;
         std::string anchor;
@@ -125,7 +123,7 @@ namespace wf
         Keyboard::Keyboard()
         {
             window = std::make_unique<WaylandWindow>
-                (default_x, default_y, default_width, default_height, anchor);
+                (default_width, default_height, anchor);
             vk = std::make_unique<VirtualKeyboardDevice> ();
 
             init_layouts();
@@ -181,10 +179,6 @@ int main(int argc, char **argv)
     bool show_help = false;
 
     auto cli = clara::detail::Help(show_help) |
-        clara::detail::Opt(wf::osk::default_x, "int")["-x"]
-            ("x position (wf-shell only)") |
-        clara::detail::Opt(wf::osk::default_y, "int")["-y"]
-            ("y position (wf-shell only)") |
         clara::detail::Opt(wf::osk::default_width, "int")["-w"]["--width"]
             ("keyboard width") |
         clara::detail::Opt(wf::osk::default_height, "int")["-h"]["--height"]

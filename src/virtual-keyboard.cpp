@@ -7,14 +7,18 @@
 #include <time.h>
 #include <iostream>
 
+#include <gdkmm/display.h>
+#include <gdkmm/seat.h>
+#include <gdk/gdkwayland.h>
+
 namespace wf
 {
     VirtualKeyboardDevice::VirtualKeyboardDevice()
     {
         auto& display = WaylandDisplay::get();
-
+        auto seat = Gdk::Display::get_default()->get_default_seat();
         vk = zwp_virtual_keyboard_manager_v1_create_virtual_keyboard(
-            display.vk_manager, display.seat);
+            display.vk_manager, gdk_wayland_seat_get_wl_seat(seat->gobj()));
 
         this->send_keymap();
     }
