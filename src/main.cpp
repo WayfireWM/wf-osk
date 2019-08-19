@@ -16,7 +16,7 @@ namespace wf
 {
     namespace osk
     {
-        int spacing = 8;
+        int spacing = OSK_SPACING;
         int default_width = 800;
         int default_height = 400;
         std::string anchor;
@@ -112,12 +112,8 @@ namespace wf
 
         void Keyboard::set_layout(KeyboardLayout *new_layout)
         {
-            if (this->current_layout)
-                this->window->remove();
-
             this->current_layout = new_layout;
-            this->window->add(new_layout->box);
-            this->window->show_all();
+            window->set_widget(new_layout->box);
         }
 
         Keyboard::Keyboard()

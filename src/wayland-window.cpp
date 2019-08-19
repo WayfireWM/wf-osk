@@ -1,9 +1,17 @@
 #include "wayland-window.hpp"
 #include <iostream>
 #include <algorithm>
+#include <gtkmm/icontheme.h>
+#include <gtkmm/main.h>
 #include <gdk/gdkwayland.h>
 #include <wayland-client.h>
 #include <gtk-layer-shell.h>
+#include <gtkmm/headerbar.h>
+
+#include <gdkmm/display.h>
+#include <gdkmm/seat.h>
+
+static constexpr int HEADERBAR_SIZE = 60;
 
 namespace wf
 {
@@ -95,7 +103,8 @@ namespace wf
     void WaylandWindow::init(int width, int height, std::string anchor)
     {
         gtk_layer_init_for_window(this->gobj());
-        gtk_layer_set_layer(this->gobj(), GTK_LAYER_SHELL_LAYER_TOP);
+        gtk_layer_set_layer(this->gobj(), GTK_LAYER_SHELL_LAYER_OVERLAY);
+        gtk_layer_set_namespace(this->gobj(), "keyboard");
         auto layer_anchor = check_anchor(anchor);
         if (layer_anchor > -1)
         {
@@ -118,8 +127,59 @@ namespace wf
     WaylandWindow::WaylandWindow(int width, int height, std::string anchor)
         : Gtk::Window()
     {
-        /* Trick: first show the window, get frame size, then subtract it again */
-        this->set_type_hint(Gdk::WINDOW_TYPE_HINT_DOCK);
+        // setup close button
+        close_button.get_style_context()->add_class("image-button");
+        close_button.set_image_from_icon_name("window-close-symbolic",
+            Gtk::ICON_SIZE_LARGE_TOOLBAR);
+        close_button.signal_clicked().connect_notify([=] () {
+            this->get_application()->quit();
+        });
+
+        // setup move gesture
+        headerbar_drag = Gtk::GestureDrag::create(drag_box);
+        headerbar_drag->signal_drag_begin().connect_notify([=] (double, double) {
+            if (this->wf_surface)
+            {
+                zwf_surface_v2_interactive_move(this->wf_surface);
+                /* Taken from GDK's Wayland impl of begin_move_drag() */
+                Gdk::Display::get_default()->get_default_seat()->ungrab();
+                headerbar_drag->reset();
+            }
+        });
+        Gtk::HeaderBar bar;
+        headerbar_box.override_background_color(bar.get_style_context()->get_background_color());
+
+
+        // setup headerbar layout
+        headerbar_box.set_size_request(-1, HEADERBAR_SIZE);
+
+        close_button.set_size_request(HEADERBAR_SIZE * 0.8, HEADERBAR_SIZE * 0.8);
+        close_button.set_margin_bottom(OSK_SPACING);
+        close_button.set_margin_top(OSK_SPACING);
+        close_button.set_margin_left(OSK_SPACING);
+        close_button.set_margin_right(OSK_SPACING);
+
+        headerbar_box.pack_end(close_button, false, false);
+        headerbar_box.pack_start(drag_box, true, true);
+        layout_box.pack_start(headerbar_box);
+        layout_box.set_spacing(OSK_SPACING);
+        this->add(layout_box);
+
+        // setup gtk layer shell
         init(width, height, anchor);
+    }
+
+    void WaylandWindow::set_widget(Gtk::Widget& w)
+    {
+        if (current_widget)
+            this->layout_box.remove(*current_widget);
+
+        this->layout_box.pack_end(w);
+        current_widget = &w;
+
+        w.set_margin_bottom(OSK_SPACING);
+        w.set_margin_left(OSK_SPACING);
+        w.set_margin_right(OSK_SPACING);
+        this->show_all();
     }
 }
