@@ -3,6 +3,8 @@
 #include <iostream>
 #include <linux/input-event-codes.h>
 
+#include "util/clara.hpp"
+
 #define ABC_TOGGLE 0x12345678
 #define NUM_TOGGLE 0x87654321
 
@@ -14,11 +16,10 @@ namespace wf
 {
     namespace osk
     {
-        int spacing = 8;
-        int default_x = 100;
-        int default_y = 100;
+        int spacing = OSK_SPACING;
         int default_width = 800;
         int default_height = 400;
+        std::string anchor;
 
         KeyButton::KeyButton(Key key, int width, int height)
         {
@@ -111,18 +112,14 @@ namespace wf
 
         void Keyboard::set_layout(KeyboardLayout *new_layout)
         {
-            if (this->current_layout)
-                this->window->remove();
-
             this->current_layout = new_layout;
-            this->window->add(new_layout->box);
-            this->window->show_all();
+            window->set_widget(new_layout->box);
         }
 
         Keyboard::Keyboard()
         {
             window = std::make_unique<WaylandWindow>
-                (default_x, default_y, default_width, default_height);
+                (default_width, default_height, anchor);
             vk = std::make_unique<VirtualKeyboardDevice> ();
 
             init_layouts();
@@ -175,33 +172,25 @@ namespace wf
 
 int main(int argc, char **argv)
 {
-    struct option opts[] = {
-        { "geometry",          required_argument, NULL, 'g' },
-        { 0,                   0,                 NULL,  0  }
-    };
+    bool show_help = false;
 
-    int c, i;
-    while((c = getopt_long(argc, argv, "g:", opts, &i)) != -1)
-    {
-        using namespace wf::osk;
-        switch(c)
-        {
-            case 'g':
-                if (sscanf(optarg, "%d,%d %dx%d", &default_x, &default_y,
-                        &default_width, &default_height) != 4)
-                {
-                    std::cerr << "Invalid geometry: " << optarg << std::endl;
-                    std::exit(-1);
-                } else
-                {
-                    std::cout << "Geometry " << default_x << "," << default_y << " "
-                        << default_width << "x" << default_height;
-                }
+    auto cli = clara::detail::Help(show_help) |
+        clara::detail::Opt(wf::osk::default_width, "int")["-w"]["--width"]
+            ("keyboard width") |
+        clara::detail::Opt(wf::osk::default_height, "int")["-h"]["--height"]
+            ("keyboard height") |
+        clara::detail::Opt(wf::osk::anchor, "top|left|bottom|right")["-a"]
+            ["--anchor"]("where the keyboard should anchor in the screen");
 
-                break;
-            default:
-                std::cerr << "Unrecognized argument " << char(c) << std::endl;
-        }
+    auto res = cli.parse(clara::detail::Args(argc, argv));
+    if (!res) {
+        std::cerr << "Error: " << res.errorMessage() << std::endl;
+        return 1;
+    }
+
+    if (show_help) {
+        std::cout << cli << std::endl;
+        return 0;
     }
 
     auto app = Gtk::Application::create();
