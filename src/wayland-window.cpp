@@ -115,7 +115,7 @@ namespace wf
                 (GtkLayerShellEdge)layer_anchor, true);
         } else if (layer_anchor == ANCHOR_PINNED_BOTTOM)
         {
-	    gtk_layer_set_anchor(this->gobj(),
+            gtk_layer_set_anchor(this->gobj(),
                 GTK_LAYER_SHELL_EDGE_BOTTOM, true);
             gtk_layer_set_anchor(this->gobj(),
                 GTK_LAYER_SHELL_EDGE_LEFT, true);
