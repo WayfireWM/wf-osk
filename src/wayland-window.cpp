@@ -95,6 +95,9 @@ namespace wf
         } else if (anchor.compare("right") == 0)
         {
             parsed_anchor = GTK_LAYER_SHELL_EDGE_RIGHT;
+        } else if (anchor.compare("pinned") == 0)
+        {
+            parsed_anchor = ANCHOR_PINNED_BOTTOM;
         }
 
         return parsed_anchor;
@@ -110,6 +113,15 @@ namespace wf
         {
             gtk_layer_set_anchor(this->gobj(),
                 (GtkLayerShellEdge)layer_anchor, true);
+        } else if (layer_anchor == ANCHOR_PINNED_BOTTOM)
+        {
+            gtk_layer_set_anchor(this->gobj(),
+                GTK_LAYER_SHELL_EDGE_BOTTOM, true);
+            gtk_layer_set_anchor(this->gobj(),
+                GTK_LAYER_SHELL_EDGE_LEFT, true);
+            gtk_layer_set_anchor(this->gobj(),
+                GTK_LAYER_SHELL_EDGE_RIGHT, true);
+            gtk_layer_auto_exclusive_zone_enable(this->gobj());
         }
 
         this->set_size_request(width, height);
