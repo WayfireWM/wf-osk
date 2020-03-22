@@ -10,6 +10,7 @@
 #include <virtual-keyboard-unstable-v1-client-protocol.h>
 
 #define OSK_SPACING 8
+static constexpr int32_t ANCHOR_PINNED_BOTTOM = -2;
 
 namespace wf
 {

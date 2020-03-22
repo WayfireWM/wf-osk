@@ -97,7 +97,7 @@ namespace wf
             parsed_anchor = GTK_LAYER_SHELL_EDGE_RIGHT;
         } else if (anchor.compare("pinned") == 0)
 	{
-	    parsed_anchor = -2;
+	    parsed_anchor = ANCHOR_PINNED_BOTTOM;
 	}
 
         return parsed_anchor;
@@ -113,7 +113,7 @@ namespace wf
         {
             gtk_layer_set_anchor(this->gobj(),
                 (GtkLayerShellEdge)layer_anchor, true);
-        } else if (layer_anchor == -2)
+        } else if (layer_anchor == ANCHOR_PINNED_BOTTOM)
 	{
 	  gtk_layer_set_anchor(this->gobj(),
 			       GTK_LAYER_SHELL_EDGE_BOTTOM, true);
