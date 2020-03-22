@@ -96,9 +96,9 @@ namespace wf
         {
             parsed_anchor = GTK_LAYER_SHELL_EDGE_RIGHT;
         } else if (anchor.compare("pinned") == 0)
-	{
-	    parsed_anchor = ANCHOR_PINNED_BOTTOM;
-	}
+		{
+			parsed_anchor = ANCHOR_PINNED_BOTTOM;
+		}
 
         return parsed_anchor;
     }
