@@ -179,7 +179,7 @@ int main(int argc, char **argv)
             ("keyboard width") |
         clara::detail::Opt(wf::osk::default_height, "int")["-h"]["--height"]
             ("keyboard height") |
-        clara::detail::Opt(wf::osk::anchor, "top|left|bottom|right")["-a"]
+        clara::detail::Opt(wf::osk::anchor, "top|left|bottom|right|pinned")["-a"]
             ["--anchor"]("where the keyboard should anchor in the screen");
 
     auto res = cli.parse(clara::detail::Args(argc, argv));
