@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=wf-osk
+GenericName=On-Screen Keyboard
+Comment=A very, very simple wayland keyboard
+Exec=wf-osk
+Type=Application
+Icon=input-keyboard
