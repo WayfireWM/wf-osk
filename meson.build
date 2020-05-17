@@ -23,3 +23,8 @@ add_project_arguments(['-Wno-unused-parameter'], language: 'cpp')
 
 subdir('proto')
 subdir('src')
+
+install_data(
+  'wf-osk.desktop',
+  install_dir: '@0@/share/applications'.format(get_option('prefix'))
+  )
