@@ -26,5 +26,5 @@ subdir('src')
 
 install_data(
   'wf-osk.desktop',
-  install_dir: '/usr/share/applications'
+  install_dir: '@0@/share/applications'.format(get_option('prefix'))
   )
