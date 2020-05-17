@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=wf-osk
+GenericName=Virtual Keyboard
+Comment=A very, very simple virtual keyboard using gtkmm, virtual-keyboard-v1 and layer-shell
+Keywords=screen;keyboard;virtual
+Exec=wf-osk
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=input-keyboard
