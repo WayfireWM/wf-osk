@@ -11,8 +11,6 @@
 #include <gdkmm/display.h>
 #include <gdkmm/seat.h>
 
-static constexpr int HEADERBAR_SIZE = 60;
-
 namespace wf
 {
     // listeners
@@ -108,6 +106,7 @@ namespace wf
         gtk_layer_init_for_window(this->gobj());
         gtk_layer_set_layer(this->gobj(), GTK_LAYER_SHELL_LAYER_OVERLAY);
         gtk_layer_set_namespace(this->gobj(), "keyboard");
+        gtk_layer_set_exclusive_zone(this->gobj(), -1);
         auto layer_anchor = check_anchor(anchor);
         if (layer_anchor > -1)
         {
@@ -136,47 +135,77 @@ namespace wf
         }
     }
 
-    WaylandWindow::WaylandWindow(int width, int height, std::string anchor)
-        : Gtk::Window()
+    void WaylandWindow::init_headerbar(int headerbar_size)
     {
-        // setup close button
-        close_button.get_style_context()->add_class("image-button");
-        close_button.set_image_from_icon_name("window-close-symbolic",
-            Gtk::ICON_SIZE_LARGE_TOOLBAR);
+        std::vector<Gtk::Button*> buttons = {
+            &top_button, &bottom_button, &close_button
+        };
+
+        const int button_size = 0.8 * headerbar_size;
+        for (auto& button : buttons)
+        {
+            button->get_style_context()->add_class("image-button");
+            button->set_size_request(button_size, button_size);
+            button->set_margin_bottom(OSK_SPACING);
+            button->set_margin_top(OSK_SPACING);
+            button->set_margin_left(OSK_SPACING);
+            button->set_margin_right(OSK_SPACING);
+        }
+
+        static const std::map<Gtk::BuiltinIconSize, int> gtk_size_map = {
+            {Gtk::ICON_SIZE_MENU, 16},
+            {Gtk::ICON_SIZE_SMALL_TOOLBAR, 16},
+            {Gtk::ICON_SIZE_LARGE_TOOLBAR, 24},
+            {Gtk::ICON_SIZE_BUTTON, 16},
+            {Gtk::ICON_SIZE_DND, 32},
+            {Gtk::ICON_SIZE_DIALOG, 48}
+        };
+
+        Gtk::BuiltinIconSize desired_gtk_icon_size = Gtk::ICON_SIZE_MENU;
+        for (auto [gtk_size, pixel_size] : gtk_size_map)
+        {
+            if (pixel_size <= button_size)
+            {
+                desired_gtk_icon_size = gtk_size;
+            }
+        }
+
+        close_button.set_image_from_icon_name("window-close-symbolic", desired_gtk_icon_size);
         close_button.signal_clicked().connect_notify([=] () {
             this->get_application()->quit();
         });
 
-        // setup move gesture
-        headerbar_drag = Gtk::GestureDrag::create(drag_box);
-        headerbar_drag->signal_drag_begin().connect_notify([=] (double, double) {
-            if (this->wf_surface)
-            {
-                zwf_surface_v2_interactive_move(this->wf_surface);
-                /* Taken from GDK's Wayland impl of begin_move_drag() */
-                Gdk::Display::get_default()->get_default_seat()->ungrab();
-                headerbar_drag->reset();
-            }
+        top_button.set_image_from_icon_name("pan-up-symbolic", desired_gtk_icon_size);
+        top_button.signal_clicked().connect_notify([=] () {
+            gtk_layer_set_anchor(this->gobj(), GTK_LAYER_SHELL_EDGE_TOP, true);
+            gtk_layer_set_anchor(this->gobj(), GTK_LAYER_SHELL_EDGE_BOTTOM, false);
         });
+
+        bottom_button.set_image_from_icon_name("pan-down-symbolic", desired_gtk_icon_size);
+        bottom_button.signal_clicked().connect_notify([=] () {
+            gtk_layer_set_anchor(this->gobj(), GTK_LAYER_SHELL_EDGE_TOP, false);
+            gtk_layer_set_anchor(this->gobj(), GTK_LAYER_SHELL_EDGE_BOTTOM, true);
+        });
+
+        // setup move gesture
         Gtk::HeaderBar bar;
         headerbar_box.override_background_color(bar.get_style_context()->get_background_color());
 
-
         // setup headerbar layout
-        headerbar_box.set_size_request(-1, HEADERBAR_SIZE);
-
-        close_button.set_size_request(HEADERBAR_SIZE * 0.8, HEADERBAR_SIZE * 0.8);
-        close_button.set_margin_bottom(OSK_SPACING);
-        close_button.set_margin_top(OSK_SPACING);
-        close_button.set_margin_left(OSK_SPACING);
-        close_button.set_margin_right(OSK_SPACING);
-
+        headerbar_box.set_size_request(-1, headerbar_size);
         headerbar_box.pack_end(close_button, false, false);
-        headerbar_box.pack_start(drag_box, true, true);
+        headerbar_box.pack_start(top_button, false, false);
+        headerbar_box.pack_start(bottom_button, false, false);
+
         layout_box.pack_start(headerbar_box);
         layout_box.set_spacing(OSK_SPACING);
         this->add(layout_box);
+    }
 
+    WaylandWindow::WaylandWindow(int width, int height, std::string anchor, int headerbar_size)
+        : Gtk::Window()
+    {
+        init_headerbar(headerbar_size);
         // setup gtk layer shell
         init(width, height, anchor);
     }

@@ -19,6 +19,8 @@ namespace wf
         int spacing = OSK_SPACING;
         int default_width = 800;
         int default_height = 400;
+        int headerbar_size = 60;
+
         std::string anchor;
 
         KeyButton::KeyButton(Key key, int width, int height)
@@ -119,7 +121,7 @@ namespace wf
         Keyboard::Keyboard()
         {
             window = std::make_unique<WaylandWindow>
-                (default_width, default_height, anchor);
+                (default_width, default_height, anchor, headerbar_size);
             vk = std::make_unique<VirtualKeyboardDevice> ();
 
             init_layouts();
@@ -179,6 +181,8 @@ int main(int argc, char **argv)
             ("keyboard width") |
         clara::detail::Opt(wf::osk::default_height, "int")["-h"]["--height"]
             ("keyboard height") |
+        clara::detail::Opt(wf::osk::headerbar_size, "int")["-b"]["--headerbar-height"]
+            ("headerbar height") |
         clara::detail::Opt(wf::osk::anchor, "top|left|bottom|right|pinned")["-a"]
             ["--anchor"]("where the keyboard should anchor in the screen");
 

@@ -30,17 +30,20 @@ namespace wf
         zwf_surface_v2 *wf_surface = nullptr;
 
         Gtk::Widget* current_widget = nullptr;
-        Glib::RefPtr<Gtk::GestureDrag> headerbar_drag;
-        Gtk::EventBox drag_box;
         Gtk::Button close_button;
+        Gtk::Button top_button;
+        Gtk::Button bottom_button;
+
+
         Gtk::HBox headerbar_box;
         Gtk::VBox layout_box;
 
         int32_t check_anchor(std::string anchor);
         void init(int width, int height, std::string anchor);
+        void init_headerbar(int headerbar_size);
 
       public:
-        WaylandWindow(int width, int height, std::string anchor);
+        WaylandWindow(int width, int height, std::string anchor, int headerbar_size);
         void set_widget(Gtk::Widget& w);
     };
 }
